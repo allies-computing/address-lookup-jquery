@@ -77,7 +77,7 @@
         
         <script>
             
-            // Replace with your API key, test key is locked to NR14 7PZ postcode search
+            // Replace with your API key, test key is locked to "NR14 7PZ" postcode search
             var api_key = "PCW45-12345-12345-1234X";
             
             $(document).ready(function() {
@@ -112,7 +112,7 @@
                     // Country hard coded to GB for this example
                     var country_code = "GB";
 
-                    // Create the URL to API including API key and encoded mobile address
+                    // Create the URL to API including API key and encoded search term
                     var address_url = "https://ws.postcoder.com/pcw/" + api_key + "/address/"+country_code+"/" + encodeURIComponent(address) + "?lines=2&page=" + page;
 
                     // Call the API
@@ -121,7 +121,8 @@
                     }).done(function(data) {
                             
                         $("#address_loading").remove();
-
+                        
+                        // For only one result, simply populate the fields, rather than asking the user to select from list
                         if (data.length == 1) {
 
                             select_address(data[0], address_results, status_element);
