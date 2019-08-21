@@ -1,253 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        
-        <title>Address lookup with jQuery</title>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-        
-        <style>
-            body { padding: 5%; }
-            #address { margin-bottom: 20px; }
-            #address_results { padding-top: 20px; }
-            #address_results .radio { padding: 5px; }
-            #address_results .radio:hover { background: #eee; }
-        </style>
+		<title>Address lookup with jQuery</title>
 
-        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-        <![endif]-->
-    </head>
-    <body>
+		<!-- Latest compiled and minified CSS -->
+		<link
+			rel="stylesheet"
+			href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+			integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+			crossorigin="anonymous"
+		/>
 
-        <div class="row">
-            <div class="col-xs-12">
-                <h1>Address lookup with jQuery</h1>
-                
-                <p>Simple demo to search for addresses via our API on form submit and returns the full address.</p>
-                
-                <p><a href="https://developers.alliescomputing.com/postcoder-web-api/address-lookup">Full address lookup API documentation</a></p>
-                
-                <br><hr><br>
-                
-                <form id="example_form">
-                    <div class="address_container">
-                        <div class="form-group">
-                            <label for="address">Search for address or postcode</label>
-                            <input type="text" class="form-control" id="address" placeholder="e.g. Manor Farm Barns, Framingham Pigot or NR14 7PZ" aria-owns="address_result" autocomplete="off" autocorrect="off">
-                        </div>
-                        <button type="submit" class="btn btn-default" id="search">Search</button>
-                        <div id="address_status" aria-live="assertive" aria-atomic="true" role="status" class="sr-only"></div>
-                        <div id="address_results"></div>
-                    </div>
-                </form>
-                
-                <br><hr><br>
-                
-                <form id="output_form">
-                    <div class="form-group">
-                        <label for="address_line_1">Address line 1</label>
-                        <input type="text" class="form-control" id="address_line_1">
-                    </div>
-                    <div class="form-group">
-                        <label for="address_line_2">Address line 2</label>
-                        <input type="text" class="form-control" id="address_line_2">
-                    </div>
-                    <div class="form-group">
-                        <label for="posttown">Post town</label>
-                        <input type="text" class="form-control" id="posttown">
-                    </div>
-                    <div class="form-group">
-                        <label for="postcode">Postcode</label>
-                        <input type="text" class="form-control" id="postcode">
-                    </div>
-                </form>
-            </div>
-        </div>
+		<style>
+			body {
+				padding: 5%;
+			}
+			#address {
+				margin-bottom: 20px;
+			}
+			#address_results {
+				padding-top: 20px;
+			}
+			#address_results .radio {
+				padding: 5px;
+			}
+			#address_results .radio:hover {
+				background: #eee;
+			}
+		</style>
 
-        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-        
-        <script>
-            
-            // Replace with your API key, test key is locked to "NR14 7PZ" postcode search
-            var api_key = "PCW45-12345-12345-1234X";
-            
-            $(document).ready(function() {
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+	</head>
+	<body>
+		<div class="row">
+			<div class="col-xs-12">
+				<h1>Address lookup with jQuery</h1>
 
-                $("#example_form").on("submit", function(e) {
-                    e.preventDefault();
-                    address_search("#address", "#address_results", "#address_status");
-                });
+				<p>
+					Simple demo to search for addresses via our API on form submit and
+					returns the full address.
+				</p>
 
-            });
-            
-            function address_search(input_element, address_results, status_element, page) {
-                
-                var page = page || 0;
-                
-                var address = $(input_element).val().trim();
-                
-                if (address != "") {
+				<p>
+					<a href="https://postcoder.com/docs/address-lookup#postcode-lookup"
+						>Full address lookup API documentation</a
+					>
+				</p>
 
-                    // Remove any previous validation results
-                    if(page == 0) $(address_results).empty();
+				<br />
+				<hr />
+				<br />
 
-                    // Create a loading message
-                    var loading_html = $("<div></div>", {
-                        id: "address_loading",
-                        text: "Searching addresses..."
-                    });
-                    $(input_element).after(loading_html);
-                    
-                    $(status_element).text("Searching addresses");
-                    
-                    // Country hard coded to GB for this example
-                    var country_code = "GB";
+				<form id="example_form">
+					<div class="address_container">
+						<div class="form-group">
+							<label for="address">Search for address or postcode</label>
+							<input
+								type="text"
+								class="form-control"
+								id="address"
+								placeholder="e.g. Manor Farm Barns, Framingham Pigot or NR14 7PZ"
+								aria-owns="address_result"
+								autocomplete="off"
+								autocorrect="off"
+							/>
+						</div>
+						<button type="submit" class="btn btn-default" id="search">
+							Search
+						</button>
+						<div
+							id="address_status"
+							aria-live="assertive"
+							aria-atomic="true"
+							role="status"
+							class="sr-only"
+						></div>
+						<div id="address_results"></div>
+					</div>
+				</form>
 
-                    // Create the URL to API including API key and encoded search term
-                    var address_url = "https://ws.postcoder.com/pcw/" + api_key + "/address/"+country_code+"/" + encodeURIComponent(address) + "?lines=2&page=" + page;
+				<br />
+				<hr />
+				<br />
 
-                    // Call the API
-                    $.ajax({
-                        url: address_url
-                    }).done(function(data) {
-                            
-                        $("#address_loading").remove();
-                        
-                        // For only one result, simply populate the fields, rather than asking the user to select from list
-                        if (data.length == 1) {
+				<form id="output_form">
+					<div class="form-group">
+						<label for="address_line_1">Address line 1</label>
+						<input type="text" class="form-control" id="address_line_1" />
+					</div>
+					<div class="form-group">
+						<label for="address_line_2">Address line 2</label>
+						<input type="text" class="form-control" id="address_line_2" />
+					</div>
+					<div class="form-group">
+						<label for="posttown">Post town</label>
+						<input type="text" class="form-control" id="posttown" />
+					</div>
+					<div class="form-group">
+						<label for="postcode">Postcode</label>
+						<input type="text" class="form-control" id="postcode" />
+					</div>
+				</form>
+			</div>
+		</div>
 
-                            select_address(data[0], address_results, status_element);
+		<!-- jQuery -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-                            $(status_element).text("\"" + data[0].summaryline + "\" selected, address fields below populated");
+		<script>
+			// Replace with your API key, test key is locked to "NR14 7PZ" postcode search
+			var api_key = "PCW45-12345-12345-1234X";
 
-                        } else if (data.length > 1) {
+			$(document).ready(function() {
+				$("#example_form").on("submit", function(e) {
+					e.preventDefault();
+					address_search("#address", "#address_results", "#address_status");
+				});
+			});
 
-                            $.each(data, function(index, item) {
-                                
-                                var address_option = $("<div></div>", {
-                                    class: "radio",
-                                    click: function(e) {
-                                        // Only trigger if it's a click with the mouse, not caused by using arrow keys
-                                        if (e.type === "click" && e.offsetX !== 0 && e.offsetY !== 0) {
-                                            e.preventDefault();
-                                            select_address(item, address_results, status_element);
-                                        }
-                                    },
-                                    keydown: function(e) {
-                                        // When using the keyboard, on return/enter select the item
-                                        var code = e.keyCode || e.which;
-                                        if(code == 13) {
-                                            e.preventDefault();
-                                            select_address(item, address_results, status_element);
-                                        }
-                                    }
-                                }).append(
-                                    $("<label></label>", {
-                                        text: item.summaryline
-                                    }).prepend(
-                                        $("<input>", {
-                                            type: "radio",
-                                            name: "address_radio",
-                                            id: "address_" + page + "_" + index,
-                                            value: index
-                                        })
-                                    )    
-                                );
-                                
-                                $(address_results).append(address_option);
+			function address_search(
+				input_element,
+				address_results,
+				status_element,
+				page
+			) {
+				$(address_results).empty();
 
-                            });
+				var page = page || 0;
 
-                            // Check if we have more than one page of results (Slight edge case)
-                            // Either let your user page through the results using button or 
-                            // show a message to encourage them to refine their search.
-                            // Typically adding a house number or name along with postcode helps
+				var address = $(input_element)
+					.val()
+					.trim();
 
-                            var last_index = data.length - 1;
+				if (address != "") {
+					// Remove any previous validation results
+					if (page == 0) $(address_results).empty();
 
-                            // Remove existing more button, if exists
-                            $("#show_more_button").remove();
+					// Create a loading message
+					var loading_html = $("<div></div>", {
+						id: "address_loading",
+						text: "Searching addresses...",
+					});
+					$(input_element).after(loading_html);
 
-                            if (data[last_index].morevalues) {
+					$(status_element).text("Searching addresses");
 
-                                // Create the more button and add some context to text, using totalresutls element
-                                var show_more_button = $("<button>", {
-                                    text: data[last_index].totalresults + " addresses found, click to show next 100",
-                                    id: "show_more_button",
-                                    click: function(e) {
-                                        e.preventDefault();
-                                    
-                                        address_search(input_element, address_results, status_element, data[last_index].nextpage);
-                                    }
-                                });
+					// Country hard coded to GB for this example
+					var country_code = "GB";
 
-                                // Insert button at end of existing results
-                                $(address_results).append(show_more_button);
+					// Create the URL to API including API key and encoded search term
+					var address_url =
+						"https://ws.postcoder.com/pcw/" +
+						api_key +
+						"/address/" +
+						country_code +
+						"/" +
+						encodeURIComponent(address) +
+						"?lines=2&page=" +
+						page;
 
-                                // Accessible status message to say more than 100 addresses
-                                $(status_element).text(data[last_index].totalresults + " addresses found, showing 100 per page. This is page " + (parseInt(page) + 1) + ". Use tab to reach next page button, after address results.");
+					// Call the API
+					$.ajax({
+						url: address_url,
+					})
+						.done(function(data) {
+							$("#address_loading").remove();
 
-                            } else {
+							// For only one result, simply populate the fields, rather than asking the user to select from list
+							if (data.length == 1) {
+								select_address(data[0], address_results, status_element);
 
-                                $(status_element).text(data.length + " addresses found");
+								$(status_element).text(
+									'"' +
+										data[0].summaryline +
+										'" selected, address fields below populated'
+								);
+							} else if (data.length > 1) {
+								// Create a <select> element and a label, we'll fill it with <option>s later
+								var select_element = $(
+									"<select name='address_select' id='address_select_element' class='form-control form-control-lg'></select>"
+								);
+								var select_label = $(
+									"<label for='address_select'>Choose an address</label>"
+								);
 
-                            }
+								$("#address_results")
+									.append(select_label)
+									.append(select_element);
 
-                        } else {
+								$("#address_select_element").on("change", function(event) {
+									if (event.target.value === "moreValues") {
+										// Here we handle a request for more addresses
+										// (if more than 100 were returned from the search)
+										// More details on that later
+										address_search(
+											input_element,
+											address_results,
+											status_element,
+											data[data.length - 1].nextpage
+										);
+									} else {
+										select_address(
+											data[event.target.value],
+											address_results,
+											status_element
+										);
+									}
+								});
 
-                            $(address_results).text("No addresses found");
+								// Fill it with <option>s
+								for (var i = 0; i < data.length; i++) {
+									// Add a placeholder if first option
+									if (i === 0) {
+										var address_option = $(
+											"<option value='null'>Select an address...</option>"
+										);
+										$("#address_select_element").append(address_option);
+									}
+									var address_option = $(
+										"<option value='" +
+											i +
+											"'>" +
+											data[i].summaryline +
+											"</option>"
+									);
+									$("#address_select_element").append(address_option);
+								}
+								// Check if we have more than one page of results (Slight edge case)
+								// Either let your user page through the results using button or
+								// show a message to encourage them to refine their search.
+								// Typically adding a house number or name along with postcode helps
 
-                            $(status_element).text("No addresses found");
+								var last_index = data.length - 1;
 
-                        }
-                        
-                    }).fail(function(error) {
+								if (data[last_index].morevalues) {
+									// Create another select option and add some context to text, using totalresults element
+									var show_more_option = $(
+										"<option value='moreValues'>" +
+											data[last_index].totalresults +
+											" addresses found, click to show next 100</option>"
+									);
 
-                        loading_html.remove();
+									$("#address_select_element").append(show_more_option);
+								} else {
+									$(status_element).text(data.length + " addresses found");
+								}
+							} else {
+								$(address_results).text("No addresses found");
 
-                        $(status_element).text("Error occurred");
+								$(status_element).text("No addresses found");
+							}
+						})
+						.fail(function(error) {
+							loading_html.remove();
 
-                        $(address_results).text("Error occurred");
+							$(status_element).text("Error occurred");
 
-                        // Triggered if API does not return HTTP code between 200 and 399
-                        // More info - https://developers.alliescomputing.com/postcoder-web-api/error-handling
+							$(address_results).text("Error occurred");
 
-                    });
-                    
-                } else {
-                    
-                    // Could show an "Address search term is required" message here
-                    
-                }
-                
-            }
-            
-            function select_address(address, address_results, status_element) {
-                
-                $(address_results).empty();
-                
-                $(status_element).text("\"" + address.summaryline + "\" selected, address fields below populated");
-                
-                // Populate fields
-                $("#address_line_1").val(address.addressline1 || "");
-                $("#address_line_2").val(address.addressline2 || "");
-                $("#posttown").val(address.posttown || "");
-                $("#postcode").val(address.postcode || "");
-                
-                // Full list of response elements
-                // https://developers.alliescomputing.com/postcoder-web-api/address-lookup
-                
-            }
+							// Triggered if API does not return HTTP code between 200 and 399
+							// More info - https://developers.alliescomputing.com/postcoder-web-api/error-handling
+						});
+				} else {
+					// Could show an "Address search term is required" message here
+				}
+			}
 
-        </script>
-    </body>
+			function select_address(address, address_results, status_element) {
+				if (address != null) {
+					$(status_element).text(
+						'"' +
+							address.summaryline +
+							'" selected, address fields below populated'
+					);
+					// Populate fields
+					$("#address_line_1").val(address.addressline1);
+					$("#address_line_2").val(address.addressline2);
+					$("#posttown").val(address.posttown);
+					$("#postcode").val(address.postcode);
+				} else {
+					$("#address_line_1").val("");
+					$("#address_line_2").val("");
+					$("#posttown").val("");
+					$("#postcode").val("");
+				}
+
+				// Full list of response elements
+				// https://developers.alliescomputing.com/postcoder-web-api/address-lookup
+			}
+		</script>
+	</body>
 </html>
